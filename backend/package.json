@@ -1,14 +1,21 @@
 {
-  "name": "backend",
+  "name": "clinic-solution-backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "engines": {
+    "node": ">=18.0.0"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "db:sync": "node scripts/syncDb.js",
+    "db:seed": "node scripts/seed.js",
+    "vercel-build": "echo 'Build completed'"
+  },
+  "keywords": ["clinic", "queue-management", "healthcare"],
+  "author": "pwscoding.co.in",
   "license": "ISC",
-  "description": "",
+  "description": "Clinic Queue Management System API - A product by pwscoding.co.in",
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
