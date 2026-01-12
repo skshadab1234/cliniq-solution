@@ -11,6 +11,7 @@ const Queue = require('./Queue')(sequelize, DataTypes);
 const Token = require('./Token')(sequelize, DataTypes);
 const RegistrationRequest = require('./RegistrationRequest')(sequelize, DataTypes);
 const Admin = require('./Admin')(sequelize, DataTypes);
+const Prescription = require('./Prescription')(sequelize, DataTypes);
 
 // Create the db object
 const db = {
@@ -24,6 +25,7 @@ const db = {
   Token,
   RegistrationRequest,
   Admin,
+  Prescription,
 };
 
 // Set up associations

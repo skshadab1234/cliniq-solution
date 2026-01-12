@@ -152,7 +152,20 @@ export const doctorApi = {
     request<{ success: boolean; queueStatus: string; currentToken: Token | null; nextToken: Token | null; waitingCount: number }>('/api/doctor/current', { token }),
 
   getAssistants: (token: string) =>
-    request<{ success: boolean; assistants: Assistant[]; count: number }>('/api/doctor/assistants', { token })
+    request<{ success: boolean; assistants: Assistant[]; count: number }>('/api/doctor/assistants', { token }),
+
+  createPrescription: (token: string, data: CreatePrescriptionData) =>
+    request<{ success: boolean; prescription: Prescription; whatsAppUrl?: string }>('/api/doctor/prescription', {
+      method: 'POST',
+      body: data,
+      token
+    }),
+
+  getPrescription: (token: string, tokenId: number) =>
+    request<{ success: boolean; prescription: Prescription | null }>(`/api/doctor/prescription/${tokenId}`, { token }),
+
+  getPatientPrescriptions: (token: string, patientId: number) =>
+    request<{ success: boolean; prescriptions: Prescription[]; count: number }>(`/api/doctor/patient/${patientId}/prescriptions`, { token })
 }
 
 // Patients
@@ -336,6 +349,34 @@ export interface Assistant {
   phone?: string
   status: 'pending' | 'approved' | 'blocked'
   assignedAt: string
+}
+
+export interface MedicineItem {
+  name: string
+  dosage: string
+  duration: string
+  instructions: string
+}
+
+export interface Prescription {
+  id: number
+  tokenId: number
+  patientId: number
+  doctorId: number
+  medicines: MedicineItem[]
+  notes?: string
+  sentViaWhatsApp: boolean
+  createdAt: string
+  updatedAt: string
+  patient?: Patient
+  doctor?: { id: number; name: string; email: string }
+}
+
+export interface CreatePrescriptionData {
+  tokenId: number
+  medicines: MedicineItem[]
+  notes?: string
+  sendWhatsApp: boolean
 }
 
 export interface QueueStats {

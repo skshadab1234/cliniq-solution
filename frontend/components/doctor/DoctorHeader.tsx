@@ -1,5 +1,6 @@
 'use client'
 
+import { Stethoscope, Calendar, Clock, Users, Wifi, WifiOff } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 type DoctorHeaderProps = {
@@ -23,34 +24,92 @@ export function DoctorHeader({
     weekday: 'short',
     day: '2-digit',
     month: 'short',
-    year: 'numeric',
   }).format(now)
 
-  const statusTone: Record<string, string> = {
-    open: 'bg-green-100 text-green-700 border-green-200',
-    paused: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    closed: 'bg-gray-100 text-gray-700 border-gray-200',
-  }
-
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight">Dr. {doctorName}</h1>
-        <p className="text-gray-600 text-sm sm:text-base">Today&apos;s Queue • {readableDate}</p>
-        <p className="text-gray-900 text-xl font-semibold font-mono tracking-tight">{timeString}</p>
-      </div>
-      <div className="flex flex-col items-start sm:items-end gap-2">
-        <div className={cn('px-3 py-1 rounded-full text-sm font-semibold border', statusTone[queueStatus] || statusTone.open)}>
-          {queueStatus === 'open' && 'Live'}
-          {queueStatus === 'paused' && 'Paused'}
-          {queueStatus === 'closed' && 'Closed'}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Top accent bar */}
+      <div className="h-1 bg-teal-500" />
+
+      <div className="p-4 sm:p-5">
+        {/* Top Row - Doctor Info + Connection */}
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-11 w-11 sm:h-12 sm:w-12 rounded-full bg-teal-500 flex items-center justify-center flex-shrink-0">
+              <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Dr. {doctorName}</h1>
+              <p className="text-xs sm:text-sm text-gray-500 flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                <span className="truncate">{readableDate}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Connection Status */}
+          <div className={cn(
+            'flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0',
+            isConnected ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'
+          )}>
+            {isConnected ? <Wifi className="h-3.5 w-3.5" /> : <WifiOff className="h-3.5 w-3.5" />}
+            <span className="hidden sm:inline">{isConnected ? 'Online' : 'Offline'}</span>
+          </div>
         </div>
-        {isConnected && (
-          <span className="text-green-600 text-sm font-medium flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-green-500" /> Connected
-          </span>
-        )}
-        <div className="text-xs text-gray-500">Waiting: <span className="font-semibold text-gray-900">{waitingCount}</span></div>
+
+        {/* Stats Row */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          {/* Time */}
+          <div className="bg-gray-50 rounded-xl p-3 text-center">
+            <div className="flex items-center justify-center gap-1 text-gray-400 text-[10px] sm:text-xs font-medium mb-1">
+              <Clock className="h-3 w-3" />
+              <span>TIME</span>
+            </div>
+            <p className="text-base sm:text-lg font-bold text-gray-900 font-mono">{timeString}</p>
+          </div>
+
+          {/* Waiting */}
+          <div className="bg-teal-50 rounded-xl p-3 text-center">
+            <div className="flex items-center justify-center gap-1 text-teal-600 text-[10px] sm:text-xs font-medium mb-1">
+              <Users className="h-3 w-3" />
+              <span>WAITING</span>
+            </div>
+            <p className="text-xl sm:text-2xl font-bold text-teal-700">{waitingCount}</p>
+          </div>
+
+          {/* Status */}
+          <div className={cn(
+            'rounded-xl p-3 text-center',
+            queueStatus === 'open' && 'bg-emerald-50',
+            queueStatus === 'paused' && 'bg-amber-50',
+            queueStatus === 'closed' && 'bg-gray-100'
+          )}>
+            <div className={cn(
+              'text-[10px] sm:text-xs font-medium mb-1',
+              queueStatus === 'open' && 'text-emerald-600',
+              queueStatus === 'paused' && 'text-amber-600',
+              queueStatus === 'closed' && 'text-gray-500'
+            )}>
+              STATUS
+            </div>
+            <div className="flex items-center justify-center gap-1.5">
+              <span className={cn(
+                'h-2 w-2 rounded-full',
+                queueStatus === 'open' && 'bg-emerald-500 animate-pulse',
+                queueStatus === 'paused' && 'bg-amber-500',
+                queueStatus === 'closed' && 'bg-gray-400'
+              )} />
+              <span className={cn(
+                'text-sm sm:text-base font-bold capitalize',
+                queueStatus === 'open' && 'text-emerald-700',
+                queueStatus === 'paused' && 'text-amber-700',
+                queueStatus === 'closed' && 'text-gray-600'
+              )}>
+                {queueStatus === 'open' ? 'Live' : queueStatus}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

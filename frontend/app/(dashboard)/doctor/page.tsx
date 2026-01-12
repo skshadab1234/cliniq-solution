@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { useSocket } from '@/hooks/useSocket'
-import { queuesApi, doctorApi, Token } from '@/lib/api'
+import { queuesApi, doctorApi, Token, MedicineItem } from '@/lib/api'
 import { toast } from 'sonner'
 import { Loader2, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,7 @@ import { QueueStatusBanner } from '@/components/doctor/QueueStatusBanner'
 import { CurrentPatientCard } from '@/components/doctor/CurrentPatientCard'
 import { ActionButtons } from '@/components/doctor/ActionButtons'
 import { WaitingInfo } from '@/components/doctor/WaitingInfo'
+import { PrescriptionDialog } from '@/components/doctor/PrescriptionDialog'
 
 export default function DoctorDashboard() {
   const { token, user } = useAuth()
@@ -24,6 +25,8 @@ export default function DoctorDashboard() {
   const [isActing, setIsActing] = useState(false)
   const [setupError, setSetupError] = useState<string | null>(null)
   const [now, setNow] = useState(new Date())
+  const [prescriptionOpen, setPrescriptionOpen] = useState(false)
+  const [isPrescribing, setIsPrescribing] = useState(false)
 
   const { subscribe, isConnected } = useSocket(queueId)
 
@@ -152,6 +155,32 @@ export default function DoctorDashboard() {
     }
   }
 
+  const handlePrescription = async (medicines: MedicineItem[], notes: string, sendWhatsApp: boolean) => {
+    if (!token || !currentToken) return
+    setIsPrescribing(true)
+    try {
+      const response = await doctorApi.createPrescription(token, {
+        tokenId: currentToken.id,
+        medicines,
+        notes,
+        sendWhatsApp
+      })
+
+      toast.success('Prescription saved successfully')
+      setPrescriptionOpen(false)
+
+      // Open WhatsApp if URL is provided
+      if (response.whatsAppUrl) {
+        window.open(response.whatsAppUrl, '_blank')
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      toast.error(err.message || 'Failed to save prescription')
+    } finally {
+      setIsPrescribing(false)
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -181,11 +210,12 @@ export default function DoctorDashboard() {
   const canCallNext = !currentToken && queueStatus === 'open' && waitingCount > 0
   const canStart = currentToken?.status === 'called'
   const canComplete = currentToken?.status === 'in_progress'
+  const canPrescribe = currentToken?.status === 'in_progress'
 
   const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1 sm:px-0">
       {/* Header */}
       <DoctorHeader
         doctorName={user?.name}
@@ -200,7 +230,7 @@ export default function DoctorDashboard() {
       <QueueStatusBanner queueStatus={queueStatus} />
 
       {/* Current Patient Card */}
-      <CurrentPatientCard currentToken={currentToken} />
+      <CurrentPatientCard currentToken={currentToken} authToken={token} />
 
       {/* Action Buttons */}
       <ActionButtons
@@ -209,13 +239,27 @@ export default function DoctorDashboard() {
         canCallNext={canCallNext}
         canStart={!!canStart}
         canComplete={!!canComplete}
+        canPrescribe={!!canPrescribe}
         onCallNext={handleCallNext}
         onStart={handleStart}
         onComplete={handleComplete}
+        onPrescription={() => setPrescriptionOpen(true)}
       />
 
       {/* Waiting Info */}
       <WaitingInfo waitingCount={waitingCount} nextToken={nextToken} />
+
+      {/* Prescription Dialog */}
+      {currentToken && (
+        <PrescriptionDialog
+          open={prescriptionOpen}
+          onOpenChange={setPrescriptionOpen}
+          currentToken={currentToken}
+          doctorName={user?.name || ''}
+          isSubmitting={isPrescribing}
+          onSave={handlePrescription}
+        />
+      )}
     </div>
   )
 }

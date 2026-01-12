@@ -5,7 +5,8 @@
       "Bash(npx tsc --noEmit)",
       "Bash(npx tsc:*)",
       "Bash(dir:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(ls:*)"
     ]
   }
 }
