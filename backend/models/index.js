@@ -40,6 +40,20 @@ Object.values(db).forEach(model => {
   try {
     await sequelize.sync({ alter: true });
     console.log('DB Synced successfully');
+
+    const defaultAdminEmail = (process.env.DEFAULT_ADMIN_EMAIL || 'admin@cliniq.com').toLowerCase()
+    const defaultAdminPassword = process.env.DEFAULT_ADMIN_PASSWORD || 'admin123'
+    const defaultAdminName = process.env.DEFAULT_ADMIN_NAME || 'Super Admin'
+
+    const existingAdmin = await Admin.findOne({ where: { email: defaultAdminEmail } })
+    console.log(existingAdmin, 'existingAdmin')
+    if (!existingAdmin) {
+      await Admin.create({
+        email: defaultAdminEmail,
+        password: defaultAdminPassword,
+        name: defaultAdminName
+      })
+    }
   } catch (err) {
     console.error('Error syncing tables:', err);
   }
