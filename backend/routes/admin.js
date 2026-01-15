@@ -10,7 +10,11 @@ router.use(authenticate, requireApproved, requireRole('admin'))
 // GET /api/admin/users - List users
 router.get('/users', async (req, res) => {
   try {
-    const { status, role, limit = 50, offset = 0 } = req.query
+    const { status, role, limit = '50', offset = '0' } = req.query
+
+    // Validate and sanitize pagination params
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 50, 1), 100)
+    const parsedOffset = Math.max(parseInt(offset, 10) || 0, 0)
 
     const where = {}
     if (status) {
@@ -22,8 +26,8 @@ router.get('/users', async (req, res) => {
 
     const { rows: users, count } = await User.findAndCountAll({
       where,
-      limit: parseInt(limit),
-      offset: parseInt(offset),
+      limit: parsedLimit,
+      offset: parsedOffset,
       order: [['createdAt', 'DESC']],
       attributes: { exclude: ['clerkId'] }
     })
@@ -32,8 +36,8 @@ router.get('/users', async (req, res) => {
       success: true,
       users,
       total: count,
-      limit: parseInt(limit),
-      offset: parseInt(offset)
+      limit: parsedLimit,
+      offset: parsedOffset
     })
   } catch (error) {
     console.error('List users error:', error)

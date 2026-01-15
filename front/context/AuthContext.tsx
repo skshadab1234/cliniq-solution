@@ -85,13 +85,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [clerkLoaded, clerkUser?.id])
 
-  // Check for stored token on mount
+  // Check for stored token on mount (with SSR safety check)
   useEffect(() => {
+    if (typeof window === 'undefined') return
     const storedToken = localStorage.getItem('clinic_token')
     if (storedToken && !token) {
       setToken(storedToken)
     }
-  }, [])
+  }, [token])
 
   const value: AuthContextType = {
     user,

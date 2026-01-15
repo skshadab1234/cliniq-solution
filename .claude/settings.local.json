@@ -6,7 +6,8 @@
       "Bash(npx tsc:*)",
       "Bash(dir:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm run dev:*)"
     ]
   }
 }

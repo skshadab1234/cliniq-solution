@@ -19,8 +19,12 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Check for existing session on mount
+  // Check for existing session on mount (with SSR safety check)
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      setIsLoading(false)
+      return
+    }
     const storedToken = localStorage.getItem('admin_token')
     if (storedToken) {
       verifyToken(storedToken)

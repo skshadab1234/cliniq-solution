@@ -1,5 +1,9 @@
 const jwt = require('jsonwebtoken')
+const { promisify } = require('util')
 const { User } = require('../models')
+
+// Promisified jwt.verify for cleaner async/await usage
+const verifyToken = promisify(jwt.verify)
 
 // Verify JWT token
 const authenticate = async (req, res, next) => {
@@ -16,36 +20,37 @@ const authenticate = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1]
 
-    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
-      if (err) {
-        return res.status(401).json({
-          success: false,
-          message: 'Unauthorized: Invalid token',
-          code: 'UNAUTHORIZED'
-        })
-      }
+    let decoded
+    try {
+      decoded = await verifyToken(token, process.env.JWT_SECRET)
+    } catch (err) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: Invalid token',
+        code: 'UNAUTHORIZED'
+      })
+    }
 
-      // Get fresh user data
-      const user = await User.findByPk(decoded.userId)
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not found',
-          code: 'UNAUTHORIZED'
-        })
-      }
+    // Get fresh user data
+    const user = await User.findByPk(decoded.userId)
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found',
+        code: 'UNAUTHORIZED'
+      })
+    }
 
-      if (user.status === 'blocked') {
-        return res.status(403).json({
-          success: false,
-          message: 'Account blocked',
-          code: 'FORBIDDEN'
-        })
-      }
+    if (user.status === 'blocked') {
+      return res.status(403).json({
+        success: false,
+        message: 'Account blocked',
+        code: 'FORBIDDEN'
+      })
+    }
 
-      req.user = user
-      next()
-    })
+    req.user = user
+    next()
   } catch (error) {
     console.error('Authorization middleware error:', error)
     res.status(500).json({

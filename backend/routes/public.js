@@ -1,5 +1,6 @@
 const express = require('express')
 const router = express.Router()
+const { Op } = require('sequelize')
 const { Token, Queue, Patient, Clinic, User } = require('../models')
 
 // GET /api/public/queue/:id - Get live queue state (no auth)
@@ -24,7 +25,7 @@ router.get('/queue/:id', async (req, res) => {
     const tokens = await Token.findAll({
       where: {
         queueId: queue.id,
-        status: ['waiting', 'called', 'in_progress']
+        status: { [Op.in]: ['waiting', 'called', 'in_progress'] }
       },
       attributes: ['id', 'tokenNumber', 'status', 'isEmergency', 'position'],
       order: [['position', 'ASC']]
