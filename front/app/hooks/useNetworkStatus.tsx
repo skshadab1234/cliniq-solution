@@ -7,6 +7,18 @@ type NetworkStatus = {
   rtt?: number // latency ms
 }
 
+type NetworkInformation = EventTarget & {
+  effectiveType?: string
+  downlink?: number
+  rtt?: number
+}
+
+type NavigatorWithConnection = Navigator & {
+  connection?: NetworkInformation
+  mozConnection?: NetworkInformation
+  webkitConnection?: NetworkInformation
+}
+
 export const useNetworkStatus = (): NetworkStatus => {
   const [status, setStatus] = useState<NetworkStatus>({
     isOnline: true,
@@ -16,10 +28,8 @@ export const useNetworkStatus = (): NetworkStatus => {
   })
 
   const updateNetwork = () => {
-    const connection =
-      (navigator as any).connection ||
-      (navigator as any).mozConnection ||
-      (navigator as any).webkitConnection
+    const nav = navigator as NavigatorWithConnection
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection
     setStatus({
       isOnline: navigator.onLine,
       effectiveType: connection?.effectiveType,
@@ -34,7 +44,7 @@ export const useNetworkStatus = (): NetworkStatus => {
     window.addEventListener('online', updateNetwork)
     window.addEventListener('offline', updateNetwork)
 
-    const connection = (navigator as any).connection
+    const connection = (navigator as NavigatorWithConnection).connection
     if (connection) {
       connection.addEventListener('change', updateNetwork)
     }
