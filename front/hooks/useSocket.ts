@@ -5,24 +5,29 @@ import { io, Socket } from 'socket.io-client'
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3002'
 
-interface SocketEvents {
-  'queue:paused': { queueId: number }
-  'queue:resumed': { queueId: number }
-  'queue:closed': { queueId: number; stats: unknown }
-  'token:added': { token: unknown }
-  'token:called': { tokenId: number; tokenNumber: number; patientName: string; isEmergency: boolean }
-  'token:status': { tokenId: number; tokenNumber: number; status: string; position?: number }
-  'token:cancelled': { tokenId: number; tokenNumber: number }
+interface ServerToClientEvents {
+  'queue:paused': (data: { queueId: number }) => void
+  'queue:resumed': (data: { queueId: number }) => void
+  'queue:closed': (data: { queueId: number; stats: unknown }) => void
+  'token:added': (data: { token: unknown }) => void
+  'token:called': (data: { tokenId: number; tokenNumber: number; patientName: string; isEmergency: boolean }) => void
+  'token:status': (data: { tokenId: number; tokenNumber: number; status: string; position?: number }) => void
+  'token:cancelled': (data: { tokenId: number; tokenNumber: number }) => void
+}
+
+interface ClientToServerEvents {
+  'join:queue': (queueId: number) => void
+  'leave:queue': (queueId: number) => void
 }
 
 export function useSocket(queueId: number | null) {
-  const [socket, setSocket] = useState<Socket | null>(null)
+  const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
     if (!queueId) return
 
-    const newSocket = io(SOCKET_URL, {
+    const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, {
       transports: ['websocket', 'polling']
     })
 
@@ -43,15 +48,15 @@ export function useSocket(queueId: number | null) {
     }
   }, [queueId])
 
-  const subscribe = useCallback(<K extends keyof SocketEvents>(
+  const subscribe = useCallback(<K extends keyof ServerToClientEvents>(
     event: K,
-    callback: (data: SocketEvents[K]) => void
+    callback: ServerToClientEvents[K]
   ) => {
     if (!socket) return () => {}
 
-    socket.on(event, callback)
+    socket.on(event as any, callback as any)
     return () => {
-      socket.off(event, callback)
+      socket.off(event as any, callback as any)
     }
   }, [socket])
 
@@ -59,13 +64,13 @@ export function useSocket(queueId: number | null) {
 }
 
 export function usePublicSocket(queueId: number | null) {
-  const [socket, setSocket] = useState<Socket | null>(null)
+  const [socket, setSocket] = useState<Socket<ServerToClientEvents, ClientToServerEvents> | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
     if (!queueId) return
 
-    const newSocket = io(SOCKET_URL, {
+    const newSocket: Socket<ServerToClientEvents, ClientToServerEvents> = io(SOCKET_URL, {
       transports: ['websocket', 'polling']
     })
 
@@ -86,15 +91,15 @@ export function usePublicSocket(queueId: number | null) {
     }
   }, [queueId])
 
-  const subscribe = useCallback(<K extends keyof SocketEvents>(
+  const subscribe = useCallback(<K extends keyof ServerToClientEvents>(
     event: K,
-    callback: (data: SocketEvents[K]) => void
+    callback: ServerToClientEvents[K]
   ) => {
     if (!socket) return () => {}
 
-    socket.on(event, callback)
+    socket.on(event as any, callback as any)
     return () => {
-      socket.off(event, callback)
+      socket.off(event as any, callback as any)
     }
   }, [socket])
 

@@ -64,7 +64,11 @@ export function StatusPieChart({ completed, skipped, noShow, cancelled = 0, wait
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number, name: string) => [`${value} (${((value / total) * 100).toFixed(0)}%)`, name]}
+          formatter={(value, name) => {
+            const numericValue = typeof value === 'number' ? value : Number(value ?? 0)
+            const percent = total > 0 ? ((numericValue / total) * 100).toFixed(0) : '0'
+            return [`${numericValue} (${percent}%)`, name]
+          }}
           contentStyle={{
             backgroundColor: 'white',
             border: '1px solid #e5e7eb',
