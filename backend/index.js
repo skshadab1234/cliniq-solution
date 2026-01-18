@@ -69,7 +69,7 @@ io.on('connection', (socket) => {
 
   // Join queue room
   socket.on('join:queue', (queueId) => {
-    if (!queueId || typeof queueId !== 'string') {
+    if (queueId === null || queueId === undefined) {
       return socket.emit('error', { message: 'Invalid queue ID' })
     }
     socket.join(`queue:${queueId}`)

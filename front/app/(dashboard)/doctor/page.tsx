@@ -94,6 +94,10 @@ export default function DoctorDashboard() {
         setQueueStatus('open')
         fetchStatus()
       }),
+      subscribe('queue:reopened', () => {
+        setQueueStatus('open')
+        fetchStatus()
+      }),
     ]
 
     return () => unsubs.forEach(unsub => unsub())
@@ -152,6 +156,19 @@ export default function DoctorDashboard() {
       toast.error(err.message || 'Failed to complete')
     } finally {
       setIsActing(false)
+    }
+  }
+
+  const handleReopenQueue = async () => {
+    if (!token || !queueId) return
+    if (!confirm('Reopen the queue? Cancelled patients will be restored to waiting.')) return
+    try {
+      await queuesApi.reopen(token, queueId)
+      toast.success('Queue reopened')
+      fetchStatus()
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      toast.error(err.message || 'Failed to reopen queue')
     }
   }
 
@@ -227,7 +244,7 @@ export default function DoctorDashboard() {
       />
 
       {/* Queue Status Banner */}
-      <QueueStatusBanner queueStatus={queueStatus} />
+      <QueueStatusBanner queueStatus={queueStatus} onReopen={handleReopenQueue} />
 
       {/* Current Patient Card */}
       <CurrentPatientCard currentToken={currentToken} authToken={token} />

@@ -84,6 +84,7 @@ export default function AssistantDashboard() {
       subscribe('token:cancelled', () => fetchQueue()),
       subscribe('queue:paused', () => fetchQueue()),
       subscribe('queue:resumed', () => fetchQueue()),
+      subscribe('queue:reopened', () => fetchQueue()),
     ]
 
     return () => unsubs.forEach(unsub => unsub())
@@ -211,6 +212,19 @@ export default function AssistantDashboard() {
     }
   }
 
+  const handleReopenQueue = async () => {
+    if (!token || !queue) return
+    if (!confirm('Reopen the queue? Cancelled patients will be restored to waiting.')) return
+    try {
+      await queuesApi.reopen(token, queue.id)
+      toast.success('Queue reopened')
+      fetchQueue()
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      toast.error(err.message || 'Failed to reopen queue')
+    }
+  }
+
   const getStatusBadge = (status: Token['status']) => {
     const styles: Record<Token['status'], string> = {
       waiting: 'bg-yellow-100 text-yellow-800',
@@ -267,7 +281,7 @@ export default function AssistantDashboard() {
         canClose={queue?.status !== 'closed'}
       />
 
-      <StatusBanner status={queue?.status} />
+      <StatusBanner status={queue?.status} onReopen={handleReopenQueue} />
 
       <StatsGrid stats={stats} />
 

@@ -9,6 +9,7 @@ interface ServerToClientEvents {
   'queue:paused': (data: { queueId: number }) => void
   'queue:resumed': (data: { queueId: number }) => void
   'queue:closed': (data: { queueId: number; stats: unknown }) => void
+  'queue:reopened': (data: { queueId: number; stats: unknown }) => void
   'token:added': (data: { token: unknown }) => void
   'token:called': (data: { tokenId: number; tokenNumber: number; patientName: string; isEmergency: boolean }) => void
   'token:status': (data: { tokenId: number; tokenNumber: number; status: string; position?: number }) => void

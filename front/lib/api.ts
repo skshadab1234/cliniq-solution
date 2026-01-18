@@ -88,6 +88,12 @@ export const queuesApi = {
     request<{ success: boolean; queue: { id: number; status: string }; stats: QueueStats }>(`/api/queues/${id}/close`, {
       method: 'PATCH',
       token
+    }),
+
+  reopen: (token: string, id: number) =>
+    request<{ success: boolean; queue: { id: number; status: string }; stats: QueueStats }>(`/api/queues/${id}/reopen`, {
+      method: 'PATCH',
+      token
     })
 }
 

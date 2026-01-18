@@ -451,4 +451,85 @@ router.patch('/:id/close', authenticate, requireApproved, async (req, res) => {
   }
 })
 
+// PATCH /api/queues/:id/reopen - Reopen a closed queue
+router.patch('/:id/reopen', authenticate, requireApproved, async (req, res) => {
+  try {
+    const queue = await Queue.findByPk(req.params.id)
+
+    if (!queue) {
+      return res.status(404).json({
+        success: false,
+        message: 'Queue not found',
+        code: 'NOT_FOUND'
+      })
+    }
+
+    if (queue.status !== 'closed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Queue is not closed',
+        code: 'QUEUE_NOT_CLOSED'
+      })
+    }
+
+    // Only allow reopening today's queue
+    const today = getToday()
+    if (queue.date !== today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Can only reopen today\'s queue',
+        code: 'CANNOT_REOPEN_OLD_QUEUE'
+      })
+    }
+
+    // Restore cancelled tokens back to waiting (tokens that were cancelled when queue closed)
+    await Token.update(
+      { status: 'waiting' },
+      {
+        where: {
+          queueId: queue.id,
+          status: 'cancelled'
+        }
+      }
+    )
+
+    await queue.update({ status: 'open' })
+
+    // Get updated stats
+    const tokens = await Token.findAll({ where: { queueId: queue.id } })
+    const stats = {
+      total: tokens.length,
+      waiting: tokens.filter(t => t.status === 'waiting').length,
+      completed: tokens.filter(t => t.status === 'completed').length,
+      inProgress: tokens.filter(t => t.status === 'in_progress').length,
+      skipped: tokens.filter(t => t.status === 'skipped').length,
+      noShow: tokens.filter(t => t.status === 'no_show').length
+    }
+
+    // Emit socket event
+    const io = req.app.get('io')
+    if (io) {
+      io.to(`queue:${queue.id}`).emit('queue:reopened', { queueId: queue.id, stats })
+    }
+
+    res.json({
+      success: true,
+      queue: { id: queue.id, status: 'open' },
+      stats,
+      message: 'Queue reopened successfully'
+    })
+  } catch (error) {
+    console.error('Reopen queue error:', error)
+
+    const handled = sendHumanReadableSequelizeError(res, error)
+    if (handled) return
+
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      code: 'SERVER_ERROR'
+    })
+  }
+})
+
 module.exports = router

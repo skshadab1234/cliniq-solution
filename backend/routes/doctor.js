@@ -4,10 +4,13 @@ const { Op } = require('sequelize')
 const { Token, Queue, Patient, DoctorAssistant, User, Prescription } = require('../models')
 const { authenticate, requireApproved, requireRole } = require('../middleware/auth')
 
-// Helper to get today's date
+// Helper to get today's date (local time)
 const getToday = () => {
   const today = new Date()
-  return today.toISOString().split('T')[0]
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 // Get doctor's queue
