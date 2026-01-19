@@ -5,7 +5,6 @@ import { Patient } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   Dialog,
   DialogContent,
@@ -57,7 +56,6 @@ export function AddPatientDialog({
   const normalizeIndianMobile = (raw: string) => {
     const digits = raw.replace(/\D/g, '')
 
-    // common cases: +91XXXXXXXXXX or 0XXXXXXXXXX
     if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2)
     if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1)
 
@@ -73,10 +71,10 @@ export function AddPatientDialog({
   const searchPhoneDigits = normalizeIndianMobile(searchPhone)
   const newPatientPhoneDigits = normalizeIndianMobile(newPatient.phone)
   const searchPhoneError = searchPhone.length > 0 && !isValidIndianMobile(searchPhone)
-    ? 'Enter a valid Indian mobile number (10 digits, starts with 6–9).'
+    ? 'Enter a valid 10-digit mobile number (starts with 6-9)'
     : ''
   const newPatientPhoneError = newPatient.phone.length > 0 && !isValidIndianMobile(newPatient.phone)
-    ? 'Enter a valid Indian mobile number (10 digits, starts with 6–9).'
+    ? 'Enter a valid 10-digit mobile number (starts with 6-9)'
     : ''
 
   const canSearch = isValidIndianMobile(searchPhone) && !isBusy
@@ -84,44 +82,42 @@ export function AddPatientDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <DialogTrigger asChild>
-            <Button size="lg" className="w-full sm:w-auto shadow-sm">
-              <Plus className="h-5 w-5 mr-2" />
-              Add Patient
-            </Button>
-          </DialogTrigger>
-        </TooltipTrigger>
-        <TooltipContent>Add a walk-in patient to the queue</TooltipContent>
-      </Tooltip>
-      <DialogContent className="sm:max-w-lg">
+      <DialogTrigger asChild>
+        <Button size="lg" className="w-full h-12 text-base font-semibold shadow-sm">
+          <Plus className="h-5 w-5 mr-2" />
+          Add Patient
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md mx-4 rounded-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add Patient to Queue</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Add Patient to Queue</DialogTitle>
         </DialogHeader>
-        <div className="space-y-5 pt-3">
+        <div className="space-y-4 pt-2">
+          {/* Search Section */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-gray-900">Phone Number</Label>
+            <Label className="text-sm font-semibold text-gray-900">Search by Phone</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="10-digit Indian mobile (e.g., 9876543210)"
+                placeholder="Enter 10-digit mobile"
                 value={searchPhoneDigits}
                 inputMode="numeric"
                 onChange={(e) => setSearchPhone(normalizeIndianMobile(e.target.value))}
                 onKeyDown={(e) => e.key === 'Enter' && canSearch && onSearchPatient()}
                 disabled={isBusy}
+                className="h-11 text-base"
                 autoFocus
               />
               <Button
                 variant="outline"
-                className="shrink-0"
+                className="shrink-0 h-11 px-4"
                 onClick={onSearchPatient}
                 disabled={!canSearch}
               >
-                {isSearching
-                  ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                  : <Search className="h-4 w-4 mr-2" />}
-                {isSearching ? 'Searching' : 'Search'}
+                {isSearching ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Search className="h-4 w-4" />
+                )}
               </Button>
             </div>
             {!!searchPhoneError && (
@@ -129,65 +125,81 @@ export function AddPatientDialog({
             )}
           </div>
 
+          {/* Search Result */}
           {searchResult && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <p className="text-sm text-green-900 leading-relaxed">
-                Found: <span className="font-semibold">{searchResult.name}</span> ({searchResult.phone})
-                {searchResult.lastVisit && (
-                  <span className="text-green-600"> - Last visit: {searchResult.lastVisit}</span>
-                )}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+              <p className="text-sm text-emerald-900">
+                Found: <span className="font-semibold">{searchResult.name}</span>
+              </p>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                {searchResult.phone}
+                {searchResult.lastVisit && ` • Last visit: ${searchResult.lastVisit}`}
               </p>
             </div>
           )}
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-900">Patient Name</Label>
+          {/* Patient Details */}
+          <div className="space-y-3 pt-2 border-t border-gray-100">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-semibold text-gray-900">Patient Name</Label>
               <Input
                 placeholder="Enter patient name"
                 value={newPatient.name}
                 onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
                 disabled={isSubmitting}
+                className="h-11 text-base"
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-900">Phone</Label>
+
+            <div className="space-y-1.5">
+              <Label className="text-sm font-semibold text-gray-900">Phone Number</Label>
               <Input
-                placeholder="10-digit Indian mobile"
+                placeholder="10-digit mobile number"
                 value={newPatientPhoneDigits}
                 inputMode="numeric"
                 onChange={(e) => setNewPatient({ ...newPatient, phone: normalizeIndianMobile(e.target.value) })}
                 disabled={isSubmitting}
+                className="h-11 text-base"
               />
               {!!newPatientPhoneError && (
                 <p className="text-xs text-red-600">{newPatientPhoneError}</p>
               )}
             </div>
-            <div className="flex items-center gap-2 rounded-lg border border-orange-100 bg-orange-50/40 px-3 py-2">
+
+            {/* Emergency Toggle */}
+            <label className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50/50 p-3 cursor-pointer">
               <input
                 type="checkbox"
                 id="emergency"
                 checked={isEmergency}
                 onChange={(e) => setIsEmergency(e.target.checked)}
-                className="rounded"
+                className="h-5 w-5 rounded border-orange-300 text-orange-600 focus:ring-orange-500"
                 disabled={isSubmitting}
               />
-              <Label htmlFor="emergency" className="flex items-center gap-1 text-orange-600 cursor-pointer">
+              <div className="flex items-center gap-2 text-orange-700">
                 <Zap className="h-4 w-4" />
-                Emergency (jumps queue)
-              </Label>
-            </div>
+                <span className="text-sm font-semibold">Emergency (Priority)</span>
+              </div>
+            </label>
           </div>
 
+          {/* Submit Button */}
           <Button
-            className="w-full"
+            className="w-full h-12 text-base font-semibold"
             onClick={onAddPatient}
             disabled={!canSubmit}
           >
-            {isSubmitting
-              ? <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              : <Plus className="h-4 w-4 mr-2" />}
-            {isSubmitting ? 'Adding…' : 'Add to Queue'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <Plus className="h-4 w-4 mr-2" />
+                Add to Queue
+              </>
+            )}
           </Button>
         </div>
       </DialogContent>

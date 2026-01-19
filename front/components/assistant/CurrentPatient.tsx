@@ -1,5 +1,5 @@
 import { Token } from "@/lib/api"
-import { User, Phone, Zap } from "lucide-react"
+import { Phone, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface CurrentPatientProps {
@@ -11,26 +11,44 @@ export function CurrentPatient({ currentToken, getStatusBadge }: CurrentPatientP
   if (!currentToken) return null
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <p className="text-sm text-blue-600 font-medium uppercase">Currently Serving</p>
-          <p className="text-3xl font-bold text-blue-900">Token #{currentToken.tokenNumber}</p>
-          <p className="text-lg text-blue-800">{currentToken.patient?.name}</p>
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-2xl p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="space-y-1">
+          <p className="text-xs sm:text-sm text-blue-600 font-semibold uppercase tracking-wide">
+            Currently Serving
+          </p>
+          <p className="text-3xl sm:text-4xl font-bold text-blue-900 leading-none" style={{ fontFeatureSettings: '"tnum"' }}>
+            #{currentToken.tokenNumber}
+          </p>
+          <p className="text-base sm:text-lg font-medium text-blue-800">
+            {currentToken.patient?.name}
+          </p>
         </div>
-        <span className={cn("px-3 py-1 rounded-full text-sm font-medium", getStatusBadge(currentToken.status))}>
+
+        <span className={cn(
+          "self-start sm:self-center px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold capitalize whitespace-nowrap",
+          getStatusBadge(currentToken.status)
+        )}>
           {currentToken.status.replace("_", " ")}
         </span>
       </div>
-      <p className="text-gray-500 flex items-center gap-1 mt-2">
-        <Phone className="h-4 w-4" />
-        {currentToken.patient?.phone}
-      </p>
-      {currentToken.isEmergency && (
-        <div className="mt-2 flex items-center gap-2 text-orange-600 text-sm font-medium">
-          <Zap className="h-4 w-4" /> Emergency case
-        </div>
-      )}
+
+      <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t border-blue-200/50">
+        <a
+          href={`tel:${currentToken.patient?.phone}`}
+          className="inline-flex items-center gap-1.5 text-sm text-blue-700 hover:text-blue-800 transition-colors"
+        >
+          <Phone className="h-4 w-4" />
+          <span>{currentToken.patient?.phone}</span>
+        </a>
+
+        {currentToken.isEmergency && (
+          <span className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-orange-600 bg-orange-100 px-2 py-1 rounded-full">
+            <Zap className="h-3.5 w-3.5" />
+            Emergency
+          </span>
+        )}
+      </div>
     </div>
   )
 }

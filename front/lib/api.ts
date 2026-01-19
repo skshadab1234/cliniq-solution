@@ -371,6 +371,7 @@ export interface Prescription {
   doctorId: number
   medicines: MedicineItem[]
   notes?: string
+  imageUrl?: string
   sentViaWhatsApp: boolean
   createdAt: string
   updatedAt: string
@@ -382,6 +383,7 @@ export interface CreatePrescriptionData {
   tokenId: number
   medicines: MedicineItem[]
   notes?: string
+  imageUrl?: string
   sendWhatsApp: boolean
 }
 

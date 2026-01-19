@@ -144,6 +144,48 @@ body {
   font-style: normal;
   letter-spacing: -0.01em;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  /* Prevent font scaling on iOS landscape */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Mobile-first base font size */
+html {
+  font-size: 16px;
+}
+
+/* Prevent iOS zoom on input focus */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+@media (min-width: 640px) {
+  input, select, textarea {
+    font-size: inherit !important;
+  }
+}
+
+/* Better touch targets for mobile */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Smaller touch targets allowed for icon buttons */
+button[class*="size-icon"],
+button[class*="h-9 w-9"],
+button[class*="h-8 w-8"] {
+  min-height: unset;
+  min-width: unset;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Hide Clerk branding */

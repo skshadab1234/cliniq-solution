@@ -41,6 +41,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         allowNull: true
       },
+      imageUrl: {
+        type: DataTypes.TEXT,
+        allowNull: true
+        // Base64 encoded image or URL of uploaded prescription image
+      },
       sentViaWhatsApp: {
         type: DataTypes.BOOLEAN,
         defaultValue: false

@@ -413,17 +413,23 @@ const generatePrescriptionMessage = (prescription, patient, doctor) => {
   message += `Date: ${date}\n`
   message += `Patient: ${patient.name}\n`
   message += `Doctor: Dr. ${doctor.name}\n\n`
-  message += `*Medicines:*\n`
 
-  prescription.medicines.forEach((med, index) => {
-    message += `${index + 1}. ${med.name}\n`
-    message += `   Dosage: ${med.dosage}\n`
-    message += `   Duration: ${med.duration}\n`
-    if (med.instructions) {
-      message += `   ${med.instructions}\n`
-    }
-    message += `\n`
-  })
+  if (prescription.medicines && prescription.medicines.length > 0) {
+    message += `*Medicines:*\n`
+    prescription.medicines.forEach((med, index) => {
+      message += `${index + 1}. ${med.name}\n`
+      message += `   Dosage: ${med.dosage}\n`
+      message += `   Duration: ${med.duration}\n`
+      if (med.instructions) {
+        message += `   ${med.instructions}\n`
+      }
+      message += `\n`
+    })
+  }
+
+  if (prescription.hasImage) {
+    message += `*Prescription image attached separately*\n\n`
+  }
 
   if (prescription.notes) {
     message += `*Notes:* ${prescription.notes}\n`
@@ -435,13 +441,17 @@ const generatePrescriptionMessage = (prescription, patient, doctor) => {
 // POST /api/doctor/prescription - Create prescription
 router.post('/prescription', authenticate, requireApproved, requireRole('doctor'), async (req, res) => {
   try {
-    const { tokenId, medicines, notes, sendWhatsApp } = req.body
+    const { tokenId, medicines, notes, imageUrl, sendWhatsApp } = req.body
     const doctorId = req.user.id
 
-    if (!tokenId || !medicines || !Array.isArray(medicines) || medicines.length === 0) {
+    // Either medicines or imageUrl is required
+    const hasMedicines = medicines && Array.isArray(medicines) && medicines.length > 0
+    const hasImage = imageUrl && typeof imageUrl === 'string' && imageUrl.length > 0
+
+    if (!tokenId || (!hasMedicines && !hasImage)) {
       return res.status(400).json({
         success: false,
-        message: 'Token ID and at least one medicine are required',
+        message: 'Token ID and either medicines or prescription image are required',
         code: 'VALIDATION_ERROR'
       })
     }
@@ -467,8 +477,9 @@ router.post('/prescription', authenticate, requireApproved, requireRole('doctor'
     if (prescription) {
       // Update existing prescription
       await prescription.update({
-        medicines,
+        medicines: hasMedicines ? medicines : prescription.medicines,
         notes: notes || null,
+        imageUrl: hasImage ? imageUrl : prescription.imageUrl,
         sentViaWhatsApp: sendWhatsApp || prescription.sentViaWhatsApp
       })
     } else {
@@ -477,8 +488,9 @@ router.post('/prescription', authenticate, requireApproved, requireRole('doctor'
         tokenId,
         patientId: token.patientId,
         doctorId,
-        medicines,
+        medicines: hasMedicines ? medicines : [],
         notes: notes || null,
+        imageUrl: hasImage ? imageUrl : null,
         sentViaWhatsApp: sendWhatsApp || false
       })
     }
@@ -488,7 +500,7 @@ router.post('/prescription', authenticate, requireApproved, requireRole('doctor'
     if (sendWhatsApp && token.patient?.phone) {
       const doctor = await User.findByPk(doctorId)
       const message = generatePrescriptionMessage(
-        { medicines, notes },
+        { medicines: hasMedicines ? medicines : [], notes, hasImage },
         token.patient,
         doctor
       )

@@ -28,7 +28,7 @@ function CardHeader({
   return (
     <div
       data-slot="card-header"
-      className={cn("flex flex-col space-y-1.5 p-6 pb-4", className)}
+      className={cn("flex flex-col space-y-1.5 p-4 sm:p-6 pb-3 sm:pb-4", className)}
       {...props}
     />
   )
@@ -67,7 +67,7 @@ function CardContent({
   return (
     <div
       data-slot="card-content"
-      className={cn("p-6 pt-0", className)}
+      className={cn("p-4 sm:p-6 pt-0", className)}
       {...props}
     />
   )
@@ -80,7 +80,7 @@ function CardFooter({
   return (
     <div
       data-slot="card-footer"
-      className={cn("flex items-center p-6 pt-0", className)}
+      className={cn("flex items-center p-4 sm:p-6 pt-0", className)}
       {...props}
     />
   )
@@ -165,7 +165,7 @@ function StatCard({
     <div
       data-slot="stat-card"
       className={cn(
-        "relative overflow-hidden rounded-2xl border p-5 transition-all duration-300",
+        "relative overflow-hidden rounded-xl sm:rounded-2xl border p-3 sm:p-5 transition-all duration-300",
         "hover:-translate-y-0.5 hover:shadow-lg",
         styles.bg,
         styles.border,
@@ -177,9 +177,9 @@ function StatCard({
       <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
 
       <div className="relative flex items-center justify-between">
-        <div className="flex-1 space-y-1">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
-          <p className={cn("text-2xl sm:text-3xl font-bold tracking-tight", styles.value)}
+        <div className="flex-1 space-y-0.5 sm:space-y-1">
+          <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-gray-500">{label}</p>
+          <p className={cn("text-xl sm:text-3xl font-bold tracking-tight", styles.value)}
              style={{ fontFeatureSettings: '"tnum"' }}>
             {value}
           </p>
@@ -197,7 +197,7 @@ function StatCard({
         </div>
         {icon && (
           <div className={cn(
-            "flex items-center justify-center h-12 w-12 rounded-xl",
+            "flex items-center justify-center h-9 w-9 sm:h-12 sm:w-12 rounded-lg sm:rounded-xl",
             styles.iconBg,
             styles.iconColor
           )}>

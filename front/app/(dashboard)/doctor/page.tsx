@@ -172,7 +172,7 @@ export default function DoctorDashboard() {
     }
   }
 
-  const handlePrescription = async (medicines: MedicineItem[], notes: string, sendWhatsApp: boolean) => {
+  const handlePrescription = async (medicines: MedicineItem[], notes: string, sendWhatsApp: boolean, imageUrl?: string) => {
     if (!token || !currentToken) return
     setIsPrescribing(true)
     try {
@@ -180,6 +180,7 @@ export default function DoctorDashboard() {
         tokenId: currentToken.id,
         medicines,
         notes,
+        imageUrl,
         sendWhatsApp
       })
 
